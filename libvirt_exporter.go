@@ -35,11 +35,23 @@ import (
 var (
 	Version = ""
 
+    domainLabels = []string{"domain", "uuid"}
+
 	libvirtUpDesc = prometheus.NewDesc(
 		prometheus.BuildFQName("libvirt", "", "up"),
 		"Whether scraping libvirt's metrics was successful.",
 		nil,
 		nil)
+	libvirtDomainsNumberDesc = prometheus.NewDesc(
+        prometheus.BuildFQName("libvirt", "", "domains_number"),
+        "Number of domains.",
+        nil,
+        nil)
+   libvirtDomainStateCode = prometheus.NewDesc(
+        prometheus.BuildFQName("libvirt", "", "domain_state_code"),
+        "State of the domain.",
+        domainLabels,
+        nil)
 	libvirtPoolInfoCapacity = prometheus.NewDesc(
 		prometheus.BuildFQName("libvirt", "pool_info", "capacity_bytes"),
 		"Pool capacity, in bytes",
@@ -68,23 +80,23 @@ var (
 	libvirtDomainInfoMaxMemBytesDesc = prometheus.NewDesc(
 		prometheus.BuildFQName("libvirt", "domain_info", "maximum_memory_bytes"),
 		"Maximum allowed memory of the domain, in bytes.",
-		[]string{"domain"},
-		nil)
+		domainLabels,
+		nil)  // libvirtDomainInfoMaxMemDesc
 	libvirtDomainInfoMemoryUsageBytesDesc = prometheus.NewDesc(
 		prometheus.BuildFQName("libvirt", "domain_info", "memory_usage_bytes"),
 		"Memory usage of the domain, in bytes.",
-		[]string{"domain"},
-		nil)
+		domainLabels,
+		nil)  // libvirtDomainInfoMemoryDesc
 	libvirtDomainInfoNrVirtCPUDesc = prometheus.NewDesc(
 		prometheus.BuildFQName("libvirt", "domain_info", "virtual_cpus"),
 		"Number of virtual CPUs for the domain.",
-		[]string{"domain"},
-		nil)
+		domainLabels,
+		nil)  // libvirtDomainInfoNrVirtCpuDesc
 	libvirtDomainInfoCPUTimeDesc = prometheus.NewDesc(
 		prometheus.BuildFQName("libvirt", "domain_info", "cpu_time_seconds_total"),
 		"Amount of CPU time used by the domain, in seconds.",
-		[]string{"domain"},
-		nil)
+		domainLabels,
+		nil)  // libvirtDomainInfoCpuTimeDesc
 	libvirtDomainInfoVirDomainState = prometheus.NewDesc(
 		prometheus.BuildFQName("libvirt", "domain_info", "vstate"),
 		"Virtual domain state. 0: no state, 1: the domain is running, 2: the domain is blocked on resource,"+
@@ -130,43 +142,43 @@ var (
 	libvirtDomainBlockRdBytesDesc = prometheus.NewDesc(
 		prometheus.BuildFQName("libvirt", "domain_block_stats", "read_bytes_total"),
 		"Number of bytes read from a block device, in bytes.",
-		[]string{"domain", "target_device"},
+		append(domainLabels, "source_file", "target_device"),
 		nil)
 	libvirtDomainBlockRdReqDesc = prometheus.NewDesc(
 		prometheus.BuildFQName("libvirt", "domain_block_stats", "read_requests_total"),
 		"Number of read requests from a block device.",
-		[]string{"domain", "target_device"},
+		append(domainLabels, "source_file", "target_device"),
 		nil)
 	libvirtDomainBlockRdTotalTimeSecondsDesc = prometheus.NewDesc(
 		prometheus.BuildFQName("libvirt", "domain_block_stats", "read_time_seconds_total"),
 		"Total time spent on reads from a block device, in seconds.",
-		[]string{"domain", "target_device"},
-		nil)
+		append(domainLabels, "source_file", "target_device"),
+		nil)  // libvirtDomainBlockRdTotalTimesDesc
 	libvirtDomainBlockWrBytesDesc = prometheus.NewDesc(
 		prometheus.BuildFQName("libvirt", "domain_block_stats", "write_bytes_total"),
 		"Number of bytes written to a block device, in bytes.",
-		[]string{"domain", "target_device"},
+		append(domainLabels, "source_file", "target_device"),
 		nil)
 	libvirtDomainBlockWrReqDesc = prometheus.NewDesc(
 		prometheus.BuildFQName("libvirt", "domain_block_stats", "write_requests_total"),
 		"Number of write requests to a block device.",
-		[]string{"domain", "target_device"},
+		append(domainLabels, "source_file", "target_device"),
 		nil)
 	libvirtDomainBlockWrTotalTimesDesc = prometheus.NewDesc(
 		prometheus.BuildFQName("libvirt", "domain_block_stats", "write_time_seconds_total"),
 		"Total time spent on writes on a block device, in seconds",
-		[]string{"domain", "target_device"},
+		append(domainLabels, "source_file", "target_device"),
 		nil)
 	libvirtDomainBlockFlushReqDesc = prometheus.NewDesc(
 		prometheus.BuildFQName("libvirt", "domain_block_stats", "flush_requests_total"),
 		"Total flush requests from a block device.",
-		[]string{"domain", "target_device"},
+		append(domainLabels, "source_file", "target_device"),
 		nil)
 	libvirtDomainBlockFlushTotalTimeSecondsDesc = prometheus.NewDesc(
 		prometheus.BuildFQName("libvirt", "domain_block_stats", "flush_time_seconds_total"),
 		"Total time in seconds spent on cache flushing to a block device",
-		[]string{"domain", "target_device"},
-		nil)
+		append(domainLabels, "source_file", "target_device"),
+		nil)  // libvirtDomainBlockFlushTotalTimesDesc
 	libvirtDomainBlockAllocationDesc = prometheus.NewDesc(
 		prometheus.BuildFQName("libvirt", "domain_block_stats", "allocation"),
 		"Offset of the highest written sector on a block device.",
@@ -290,42 +302,42 @@ var (
 	libvirtDomainInterfaceRxBytesDesc = prometheus.NewDesc(
 		prometheus.BuildFQName("libvirt", "domain_interface_stats", "receive_bytes_total"),
 		"Number of bytes received on a network interface, in bytes.",
-		[]string{"domain", "target_device"},
+		append(domainLabels, "source_bridge", "target_device"),
 		nil)
 	libvirtDomainInterfaceRxPacketsDesc = prometheus.NewDesc(
 		prometheus.BuildFQName("libvirt", "domain_interface_stats", "receive_packets_total"),
 		"Number of packets received on a network interface.",
-		[]string{"domain", "target_device"},
+		append(domainLabels, "source_bridge", "target_device"),
 		nil)
 	libvirtDomainInterfaceRxErrsDesc = prometheus.NewDesc(
 		prometheus.BuildFQName("libvirt", "domain_interface_stats", "receive_errors_total"),
 		"Number of packet receive errors on a network interface.",
-		[]string{"domain", "target_device"},
+		append(domainLabels, "source_bridge", "target_device"),
 		nil)
 	libvirtDomainInterfaceRxDropDesc = prometheus.NewDesc(
 		prometheus.BuildFQName("libvirt", "domain_interface_stats", "receive_drops_total"),
 		"Number of packet receive drops on a network interface.",
-		[]string{"domain", "target_device"},
+		append(domainLabels, "source_bridge", "target_device"),
 		nil)
 	libvirtDomainInterfaceTxBytesDesc = prometheus.NewDesc(
 		prometheus.BuildFQName("libvirt", "domain_interface_stats", "transmit_bytes_total"),
 		"Number of bytes transmitted on a network interface, in bytes.",
-		[]string{"domain", "target_device"},
+		append(domainLabels, "source_bridge", "target_device"),
 		nil)
 	libvirtDomainInterfaceTxPacketsDesc = prometheus.NewDesc(
 		prometheus.BuildFQName("libvirt", "domain_interface_stats", "transmit_packets_total"),
 		"Number of packets transmitted on a network interface.",
-		[]string{"domain", "target_device"},
+		append(domainLabels, "source_bridge", "target_device"),
 		nil)
 	libvirtDomainInterfaceTxErrsDesc = prometheus.NewDesc(
 		prometheus.BuildFQName("libvirt", "domain_interface_stats", "transmit_errors_total"),
 		"Number of packet transmit errors on a network interface.",
-		[]string{"domain", "target_device"},
+		append(domainLabels, "source_bridge", "target_device"),
 		nil)
 	libvirtDomainInterfaceTxDropDesc = prometheus.NewDesc(
 		prometheus.BuildFQName("libvirt", "domain_interface_stats", "transmit_drops_total"),
 		"Number of packet transmit drops on a network interface.",
-		[]string{"domain", "target_device"},
+		append(domainLabels, "source_bridge", "target_device"),
 		nil)
 
 	libvirtDomainMemoryStatMajorFaultTotalDesc = prometheus.NewDesc(
@@ -351,7 +363,7 @@ var (
 		"The total amount of usable memory as seen by the domain. This value may be less than the amount of "+
 			"memory assigned to the domain if a balloon driver is in use or if the guest OS does not initialize all "+
 			"assigned pages. This value is expressed in bytes.",
-		[]string{"domain"},
+		domainLabels,
 		nil)
 	libvirtDomainMemoryStatActualBaloonBytesDesc = prometheus.NewDesc(
 		prometheus.BuildFQName("libvirt", "domain_memory_stats", "actual_balloon_bytes"),
@@ -367,7 +379,7 @@ var (
 		prometheus.BuildFQName("libvirt", "domain_memory_stats", "usable_bytes"),
 		"How much the balloon can be inflated without pushing the guest system to swap, corresponds "+
 			"to 'Available' in /proc/meminfo",
-		[]string{"domain"},
+		domainLabels,
 		nil)
 	libvirtDomainMemoryStatDiskCachesBytesDesc = prometheus.NewDesc(
 		prometheus.BuildFQName("libvirt", "domain_memory_stats", "disk_cache_bytes"),
@@ -407,6 +419,8 @@ func CollectDomain(ch chan<- prometheus.Metric, stat libvirt.DomainStats) error 
 		return err
 	}
 
+    var domainLabelValues = []string{domainName, domainUUID}
+
 	// Decode XML description of domain to get block device names, etc.
 	xmlDesc, err := stat.Domain.GetXMLDesc(0)
 	if err != nil {
@@ -423,6 +437,11 @@ func CollectDomain(ch chan<- prometheus.Metric, stat libvirt.DomainStats) error 
 	if err != nil {
 		return err
 	}
+	ch <- prometheus.MustNewConstMetric(
+		libvirtDomainStateCode,
+		prometheus.GaugeValue,
+		float64(info.State),
+		domainLabelValues...)
 	ch <- prometheus.MustNewConstMetric(
 		libvirtDomainInfoMetaDesc,
 		prometheus.GaugeValue,
@@ -441,22 +460,22 @@ func CollectDomain(ch chan<- prometheus.Metric, stat libvirt.DomainStats) error 
 		libvirtDomainInfoMaxMemBytesDesc,
 		prometheus.GaugeValue,
 		float64(info.MaxMem)*1024,
-		domainName)
+		domainLabelValues...)
 	ch <- prometheus.MustNewConstMetric(
 		libvirtDomainInfoMemoryUsageBytesDesc,
 		prometheus.GaugeValue,
 		float64(info.Memory)*1024,
-		domainName)
+		domainLabelValues...)
 	ch <- prometheus.MustNewConstMetric(
 		libvirtDomainInfoNrVirtCPUDesc,
 		prometheus.GaugeValue,
 		float64(info.NrVirtCpu),
-		domainName)
+		domainLabelValues...)
 	ch <- prometheus.MustNewConstMetric(
 		libvirtDomainInfoCPUTimeDesc,
 		prometheus.CounterValue,
 		float64(info.CpuTime)/1000/1000/1000, // From nsec to sec
-		domainName)
+		domainLabelValues...)
 	ch <- prometheus.MustNewConstMetric(
 		libvirtDomainInfoVirDomainState,
 		prometheus.GaugeValue,
@@ -563,64 +582,64 @@ func CollectDomain(ch chan<- prometheus.Metric, stat libvirt.DomainStats) error 
 				libvirtDomainBlockRdBytesDesc,
 				prometheus.CounterValue,
 				float64(disk.RdBytes),
-				domainName,
-				disk.Name)
+				append(domainLabelValues, DiskSource, disk.Name)...,
+				)
 		}
 		if disk.RdReqsSet {
 			ch <- prometheus.MustNewConstMetric(
 				libvirtDomainBlockRdReqDesc,
 				prometheus.CounterValue,
 				float64(disk.RdReqs),
-				domainName,
-				disk.Name)
+				append(domainLabelValues, DiskSource, disk.Name)...,
+				)
 		}
 		if disk.RdTimesSet {
 			ch <- prometheus.MustNewConstMetric(
 				libvirtDomainBlockRdTotalTimeSecondsDesc,
 				prometheus.CounterValue,
 				float64(disk.RdTimes)/1e9,
-				domainName,
-				disk.Name)
+				append(domainLabelValues, DiskSource, disk.Name)...,
+				)
 		}
 		if disk.WrBytesSet {
 			ch <- prometheus.MustNewConstMetric(
 				libvirtDomainBlockWrBytesDesc,
 				prometheus.CounterValue,
 				float64(disk.WrBytes),
-				domainName,
-				disk.Name)
+				append(domainLabelValues, DiskSource, disk.Name)...,
+				)
 		}
 		if disk.WrReqsSet {
 			ch <- prometheus.MustNewConstMetric(
 				libvirtDomainBlockWrReqDesc,
 				prometheus.CounterValue,
 				float64(disk.WrReqs),
-				domainName,
-				disk.Name)
+				append(domainLabelValues, DiskSource, disk.Name)...,
+				)
 		}
 		if disk.WrTimesSet {
 			ch <- prometheus.MustNewConstMetric(
 				libvirtDomainBlockWrTotalTimesDesc,
 				prometheus.CounterValue,
 				float64(disk.WrTimes)/1e9,
-				domainName,
-				disk.Name)
+				append(domainLabelValues, DiskSource, disk.Name)...,
+				)
 		}
 		if disk.FlReqsSet {
 			ch <- prometheus.MustNewConstMetric(
 				libvirtDomainBlockFlushReqDesc,
 				prometheus.CounterValue,
 				float64(disk.FlReqs),
-				domainName,
-				disk.Name)
+				append(domainLabelValues, DiskSource, disk.Name)...,
+				)
 		}
 		if disk.FlTimesSet {
 			ch <- prometheus.MustNewConstMetric(
 				libvirtDomainBlockFlushTotalTimeSecondsDesc,
 				prometheus.CounterValue,
 				float64(disk.FlTimes)/1e9,
-				domainName,
-				disk.Name)
+				append(domainLabelValues, DiskSource, disk.Name)...,
+				)
 		}
 		if disk.AllocationSet {
 			ch <- prometheus.MustNewConstMetric(
@@ -844,64 +863,64 @@ func CollectDomain(ch chan<- prometheus.Metric, stat libvirt.DomainStats) error 
 				libvirtDomainInterfaceRxBytesDesc,
 				prometheus.CounterValue,
 				float64(iface.RxBytes),
-				domainName,
-				iface.Name)
+				append(domainLabelValues, SourceBridge, iface.Name)...,
+				)
 		}
 		if iface.RxPktsSet {
 			ch <- prometheus.MustNewConstMetric(
 				libvirtDomainInterfaceRxPacketsDesc,
 				prometheus.CounterValue,
 				float64(iface.RxPkts),
-				domainName,
-				iface.Name)
+				append(domainLabelValues, SourceBridge, iface.Name)...,
+				)
 		}
 		if iface.RxErrsSet {
 			ch <- prometheus.MustNewConstMetric(
 				libvirtDomainInterfaceRxErrsDesc,
 				prometheus.CounterValue,
 				float64(iface.RxErrs),
-				domainName,
-				iface.Name)
+				append(domainLabelValues, SourceBridge, iface.Name)...,
+				)
 		}
 		if iface.RxDropSet {
 			ch <- prometheus.MustNewConstMetric(
 				libvirtDomainInterfaceRxDropDesc,
 				prometheus.CounterValue,
 				float64(iface.RxDrop),
-				domainName,
-				iface.Name)
+				append(domainLabelValues, SourceBridge, iface.Name)...,
+				)
 		}
 		if iface.TxBytesSet {
 			ch <- prometheus.MustNewConstMetric(
 				libvirtDomainInterfaceTxBytesDesc,
 				prometheus.CounterValue,
 				float64(iface.TxBytes),
-				domainName,
-				iface.Name)
+				append(domainLabelValues, SourceBridge, iface.Name)...,
+				)
 		}
 		if iface.TxPktsSet {
 			ch <- prometheus.MustNewConstMetric(
 				libvirtDomainInterfaceTxPacketsDesc,
 				prometheus.CounterValue,
 				float64(iface.TxPkts),
-				domainName,
-				iface.Name)
+				append(domainLabelValues, SourceBridge, iface.Name)...,
+				)
 		}
 		if iface.TxErrsSet {
 			ch <- prometheus.MustNewConstMetric(
 				libvirtDomainInterfaceTxErrsDesc,
 				prometheus.CounterValue,
 				float64(iface.TxErrs),
-				domainName,
-				iface.Name)
+				append(domainLabelValues, SourceBridge, iface.Name)...,
+				)
 		}
 		if iface.TxDropSet {
 			ch <- prometheus.MustNewConstMetric(
 				libvirtDomainInterfaceTxDropDesc,
 				prometheus.CounterValue,
 				float64(iface.TxDrop),
-				domainName,
-				iface.Name)
+				append(domainLabelValues, SourceBridge, iface.Name)...,
+				)
 		}
 	}
 
@@ -935,7 +954,7 @@ func CollectDomain(ch chan<- prometheus.Metric, stat libvirt.DomainStats) error 
 		libvirtDomainMemoryStatAvailableBytesDesc,
 		prometheus.GaugeValue,
 		float64(MemoryStats.Available)*1024,
-		domainName)
+		domainLabelValues...)
 	ch <- prometheus.MustNewConstMetric(
 		libvirtDomainMemoryStatActualBaloonBytesDesc,
 		prometheus.GaugeValue,
@@ -950,7 +969,7 @@ func CollectDomain(ch chan<- prometheus.Metric, stat libvirt.DomainStats) error 
 		libvirtDomainMemoryStatUsableBytesDesc,
 		prometheus.GaugeValue,
 		float64(MemoryStats.Usable)*1024,
-		domainName)
+		domainLabelValues...)
 	ch <- prometheus.MustNewConstMetric(
 		libvirtDomainMemoryStatDiskCachesBytesDesc,
 		prometheus.GaugeValue,
@@ -1025,6 +1044,16 @@ func CollectFromLibvirt(ch chan<- prometheus.Metric, uri string) error {
 		return err
 	}
 	libraryVersion := fmt.Sprintf("%d.%d.%d", libraryVersionNum/1000000%1000, libraryVersionNum/1000%1000, libraryVersionNum%1000)
+
+    domainIds, err := conn.ListDomains()
+	if err != nil {
+		return err
+	}
+
+    ch <- prometheus.MustNewConstMetric(
+            libvirtDomainsNumberDesc,
+            prometheus.GaugeValue,
+            float64(len(domainIds)))
 
 	ch <- prometheus.MustNewConstMetric(
 		libvirtVersionsInfoDesc,
@@ -1110,6 +1139,7 @@ func NewLibvirtExporter(uri string) (*LibvirtExporter, error) {
 func (e *LibvirtExporter) Describe(ch chan<- *prometheus.Desc) {
 	// Status and versions
 	ch <- libvirtUpDesc
+	ch <- libvirtDomainsNumberDesc
 	ch <- libvirtVersionsInfoDesc
 
 	// Pool info
@@ -1118,6 +1148,7 @@ func (e *LibvirtExporter) Describe(ch chan<- *prometheus.Desc) {
 	ch <- libvirtPoolInfoAvailable
 
 	// Domain info
+	ch <- libvirtDomainStateCode
 	ch <- libvirtDomainInfoMetaDesc
 	ch <- libvirtDomainInfoMaxMemBytesDesc
 	ch <- libvirtDomainInfoMemoryUsageBytesDesc
