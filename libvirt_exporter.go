@@ -344,19 +344,19 @@ var (
 		prometheus.BuildFQName("libvirt", "domain_memory_stats", "major_fault_total"),
 		"Page faults occur when a process makes a valid access to virtual memory that is not available. "+
 			"When servicing the page fault, if disk IO is required, it is considered a major fault.",
-		[]string{"domain"},
+		domainLabels,
 		nil)
 	libvirtDomainMemoryStatMinorFaultTotalDesc = prometheus.NewDesc(
 		prometheus.BuildFQName("libvirt", "domain_memory_stats", "minor_fault_total"),
 		"Page faults occur when a process makes a valid access to virtual memory that is not available. "+
 			"When servicing the page not fault, if disk IO is required, it is considered a minor fault.",
-		[]string{"domain"},
+		domainLabels,
 		nil)
 	libvirtDomainMemoryStatUnusedBytesDesc = prometheus.NewDesc(
 		prometheus.BuildFQName("libvirt", "domain_memory_stats", "unused_bytes"),
 		"The amount of memory left completely unused by the system. Memory that is available but used for "+
 			"reclaimable caches should NOT be reported as free. This value is expressed in bytes.",
-		[]string{"domain"},
+		domainLabels,
 		nil)
 	libvirtDomainMemoryStatAvailableBytesDesc = prometheus.NewDesc(
 		prometheus.BuildFQName("libvirt", "domain_memory_stats", "available_bytes"),
@@ -368,12 +368,12 @@ var (
 	libvirtDomainMemoryStatActualBaloonBytesDesc = prometheus.NewDesc(
 		prometheus.BuildFQName("libvirt", "domain_memory_stats", "actual_balloon_bytes"),
 		"Current balloon value (in bytes).",
-		[]string{"domain"},
+		domainLabels,
 		nil)
 	libvirtDomainMemoryStatRssBytesDesc = prometheus.NewDesc(
 		prometheus.BuildFQName("libvirt", "domain_memory_stats", "rss_bytes"),
 		"Resident Set Size of the process running the domain. This value is in bytes",
-		[]string{"domain"},
+		domainLabels,
 		nil)
 	libvirtDomainMemoryStatUsableBytesDesc = prometheus.NewDesc(
 		prometheus.BuildFQName("libvirt", "domain_memory_stats", "usable_bytes"),
@@ -385,12 +385,12 @@ var (
 		prometheus.BuildFQName("libvirt", "domain_memory_stats", "disk_cache_bytes"),
 		"The amount of memory, that can be quickly reclaimed without additional I/O (in bytes)."+
 			"Typically these pages are used for caching files from disk.",
-		[]string{"domain"},
+		domainLabels,
 		nil)
 	libvirtDomainMemoryStatUsedPercentDesc = prometheus.NewDesc(
 		prometheus.BuildFQName("libvirt", "domain_memory_stats", "used_percent"),
 		"The amount of memory in percent, that used by domain.",
-		[]string{"domain"},
+		domainLabels,
 		nil)
 
 	errorsMap map[string]struct{}
@@ -939,17 +939,17 @@ func CollectDomain(ch chan<- prometheus.Metric, stat libvirt.DomainStats) error 
 		libvirtDomainMemoryStatMajorFaultTotalDesc,
 		prometheus.CounterValue,
 		float64(MemoryStats.MajorFault),
-		domainName)
+		domainLabelValues...)
 	ch <- prometheus.MustNewConstMetric(
 		libvirtDomainMemoryStatMinorFaultTotalDesc,
 		prometheus.CounterValue,
 		float64(MemoryStats.MinorFault),
-		domainName)
+		domainLabelValues...)
 	ch <- prometheus.MustNewConstMetric(
 		libvirtDomainMemoryStatUnusedBytesDesc,
 		prometheus.GaugeValue,
 		float64(MemoryStats.Unused)*1024,
-		domainName)
+		domainLabelValues...)
 	ch <- prometheus.MustNewConstMetric(
 		libvirtDomainMemoryStatAvailableBytesDesc,
 		prometheus.GaugeValue,
@@ -959,12 +959,12 @@ func CollectDomain(ch chan<- prometheus.Metric, stat libvirt.DomainStats) error 
 		libvirtDomainMemoryStatActualBaloonBytesDesc,
 		prometheus.GaugeValue,
 		float64(MemoryStats.ActualBalloon)*1024,
-		domainName)
+		domainLabelValues...)
 	ch <- prometheus.MustNewConstMetric(
 		libvirtDomainMemoryStatRssBytesDesc,
 		prometheus.GaugeValue,
 		float64(MemoryStats.Rss)*1024,
-		domainName)
+		domainLabelValues...)
 	ch <- prometheus.MustNewConstMetric(
 		libvirtDomainMemoryStatUsableBytesDesc,
 		prometheus.GaugeValue,
@@ -974,12 +974,12 @@ func CollectDomain(ch chan<- prometheus.Metric, stat libvirt.DomainStats) error 
 		libvirtDomainMemoryStatDiskCachesBytesDesc,
 		prometheus.GaugeValue,
 		float64(MemoryStats.DiskCaches)*1024,
-		domainName)
+		domainLabelValues...)
 	ch <- prometheus.MustNewConstMetric(
 		libvirtDomainMemoryStatUsedPercentDesc,
 		prometheus.GaugeValue,
 		float64(usedPercent),
-		domainName)
+		domainLabelValues...)
 
 	return nil
 }
