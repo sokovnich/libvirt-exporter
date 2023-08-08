@@ -392,6 +392,11 @@ var (
 		"The amount of memory in percent, that used by domain.",
 		domainLabels,
 		nil)
+	libvirtDomainMemoryStatUsedBytesDesc = prometheus.NewDesc(
+		prometheus.BuildFQName("libvirt", "domain_memory_stats", "used_bytes"),
+		"The amount of memory that used by domain.",
+		domainLabels,
+		nil)
 
 	errorsMap map[string]struct{}
 )
@@ -927,13 +932,14 @@ func CollectDomain(ch chan<- prometheus.Metric, stat libvirt.DomainStats) error 
 	// Collect Memory Stats
 	memorystat, err := stat.Domain.MemoryStats(11, 0)
 	var MemoryStats libvirtSchema.VirDomainMemoryStats
+	var usedBytes float64
 	var usedPercent float64
 	if err == nil {
 		MemoryStats = memoryStatCollect(&memorystat)
-		if MemoryStats.Usable != 0 && MemoryStats.Available != 0 {
-			usedPercent = (float64(MemoryStats.Available) - float64(MemoryStats.Usable)) / (float64(MemoryStats.Available) / float64(100))
+		if MemoryStats.Unused != 0 && MemoryStats.Available != 0 {
+		    usedBytes = float64(MemoryStats.Available) - float64(MemoryStats.Unused)
+			usedPercent = usedBytes / (float64(MemoryStats.Available) / float64(100))
 		}
-
 	}
 	ch <- prometheus.MustNewConstMetric(
 		libvirtDomainMemoryStatMajorFaultTotalDesc,
@@ -979,6 +985,11 @@ func CollectDomain(ch chan<- prometheus.Metric, stat libvirt.DomainStats) error 
 		libvirtDomainMemoryStatUsedPercentDesc,
 		prometheus.GaugeValue,
 		float64(usedPercent),
+		domainLabelValues...)
+	ch <- prometheus.MustNewConstMetric(
+		libvirtDomainMemoryStatUsedBytesDesc,
+		prometheus.GaugeValue,
+		float64(usedBytes)*1024,
 		domainLabelValues...)
 
 	return nil

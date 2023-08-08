@@ -70,7 +70,8 @@ libvirt_domain_memory_stats_minor_fault_total{domain="instance-00000337"} 5.6630
 libvirt_domain_memory_stats_rss_bytes{domain="instance-00000337"} 8.7020544e+09
 libvirt_domain_memory_stats_unused_bytes{domain="instance-00000337"} 7.72722688e+08
 libvirt_domain_memory_stats_usable_bytes{domain="instance-00000337"} 2.27098624e+09
-libvirt_domain_memory_stats_used_percent{domain="instance-00000337"} 72.84790881786736
+libvirt_domain_memory_stats_used_percent{domain="instance-00000337"} 90.76126639891987
+libvirt_domain_memory_stats_used_bytes{domain="instance-00000337"} 7.591223296e+09
 
 libvirt_domain_vcpu_cpu{domain="instance-00000337",vcpu="0"} 7
 libvirt_domain_vcpu_delay_seconds_total{domain="instance-00000337",vcpu="0"} 880.985415109
