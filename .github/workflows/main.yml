@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [ "master", "dev"]
+  pull_request:
+    branches: [ "master", "dev"]
+
+jobs:
+  build-ubuntu1604:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Build package
+        run: |
+          echo `ls`
+          ./build-with ./build_containers/Dockerfile.ubuntu1604
+          md5sum ./libvirt-exporter
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: libvirt-exporter-ubuntu1604
+          path: ./libvirt-exporter
+  build-ubuntu1804:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Build package
+        run: |
+          ./build-with ./build_containers/Dockerfile.ubuntu1804
+          md5sum ./libvirt-exporter
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: libvirt-exporter-ubuntu1804
+          path: ./libvirt-exporter
+  build-ubuntu2004:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Build package
+        run: |
+          ./build-with ./build_containers/Dockerfile.ubuntu2004
+          md5sum ./libvirt-exporter
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: libvirt-exporter-ubuntu2004
+          path: ./libvirt-exporter
